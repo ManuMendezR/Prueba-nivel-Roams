@@ -4,6 +4,7 @@ from bbdd import crear_tablas
 
 app = Flask(__name__)
 
+#Esta es la solicitud de la API que va a crear nuevos clientes
 @app.route("/crear", methods=["POST"])
 def crearCliente():
 
@@ -19,6 +20,7 @@ def crearCliente():
     resultado = controlador.crearCliente(dni, letraDni, nombre, apellido1, apellido2, email, capitalSolicitado)
     return jsonify(resultado)
 
+#Esta es la solicitud de la API que va actualizar los datos de los clientes
 @app.route("/actualizar", methods=["PUT"])
 def actualizarCliente():
 
@@ -33,6 +35,7 @@ def actualizarCliente():
     resultado = controlador.actualizarCliente(dni, nombre, apellido1, apellido2, email, capitalSolicitado)
     return jsonify(resultado)
 
+#Esta es la solicitud de la API que va consultar los datos de los clientes
 @app.route("/consultar", methods=["GET"])
 def consultarCliente():
 
@@ -42,15 +45,29 @@ def consultarCliente():
     resultado = controlador.consultarCliente(dni)
     return jsonify(resultado)
 
+#Esta es la solicitud de la API que va eliminar los datos de los clientes
 @app.route("/eliminar", methods=["DELETE"])
 def eliminarCliente():
 
     eliminarCliente = request.get_json()
-    dni = eliminarCliente(dni)
+    dni = eliminarCliente["dni"]
 
     resultado = controlador.eliminarCliente(dni)
     return jsonify(resultado)
 
+#Esta es la solicitud de la API que va simular hipotecas asociadas a los clientes
+@app.route("/simularHipoteca", methods=["POST"])
+def simularHipoteca():
+
+    simularHipoteca = request.get_json()
+    dni = simularHipoteca["dni"]
+    tae = simularHipoteca["tae"]
+    plazoAmortizacion = simularHipoteca["plazoAmortizacion"]
+
+    resultado = controlador.simularHipoteca(dni, tae, plazoAmortizacion)
+    return jsonify(resultado)
+
+#Este if crea las tablas en caso de que no existan y conecta la API
 if __name__ == "__main__":
 
     crear_tablas()

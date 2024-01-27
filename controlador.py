@@ -18,16 +18,16 @@ def validarDNI(dni, letraDni):
             
 #Este método comprueba que el cliente introducido exista
 def comprobarExistenciaCliente(dni):
-      
-      valorValidarDNI = [dni]
+
       bbdd = get_conexionBBDD()
       cursor = bbdd.cursor()
-      cursor.execute("SELECT * FROM CLIENTES WHERE DNI = ?", valorValidarDNI)
+      sentencia = "SELECT * FROM CLIENTES WHERE DNI = ?"
+      cursor.execute(sentencia, [dni])
       validarCliente = cursor.fetchall()
       bbdd.commit()
       bbdd.close()
 
-      #Valido que el cliente asociado al dni exista
+      
       if(len(validarCliente)>0):
             
             return True
@@ -38,19 +38,26 @@ def comprobarExistenciaCliente(dni):
       
 
 
-#Este método crea nuevos clientes, validando que el dni introducido sea correcto
+#Este método crea nuevos clientes, validando que el dni introducido sea correcto y que no exista en la base de datos
 def crearCliente(dni, letraDni, nombre, apellido1, apellido2, email, capitalSolicitado):
 
     if(validarDNI(dni,letraDni) == True):
           
-          bbdd = get_conexionBBDD()
-          cursor = bbdd.cursor()
-          sentencia = "INSERT INTO CLIENTES(DNI, LETRA_DNI, NOMBRE, APELLIDO1, APELLIDO2, EMAIL, CAPITAL_SOLICITADO) VALUES(?,?,?,?,?,?,?)"
-          cursor.execute(sentencia,[dni, letraDni, nombre, apellido1, apellido2, email, capitalSolicitado])
-          bbdd.commit()
-          bbdd.close()
+          if(comprobarExistenciaCliente(dni)==False):
+          
+            bbdd = get_conexionBBDD()
+            cursor = bbdd.cursor()
+            sentencia = "INSERT INTO CLIENTES(DNI, LETRA_DNI, NOMBRE, APELLIDO1, APELLIDO2, EMAIL, CAPITAL_SOLICITADO) VALUES(?,?,?,?,?,?,?)"
+            cursor.execute(sentencia,[dni, letraDni, nombre, apellido1, apellido2, email, capitalSolicitado])
+            bbdd.commit()
+            bbdd.close()
 
-          return True
+            return True
+          
+          else:
+                
+                return False
+
 
     else:
           return False
@@ -82,7 +89,7 @@ def consultarCliente(dni):
             cursor = bbdd.cursor()
             sentencia = "SELECT LETRA_DNI, NOMBRE, APELLIDO1, APELLIDO2, EMAIL, CAPITAL_SOLICITADO FROM CLIENTES WHERE DNI = ?"
             cursor.execute(sentencia,[dni])
-            resultado = cursor.fetchone
+            resultado = cursor.fetchone()
             bbdd.commit()
             bbdd.close()
 
@@ -92,7 +99,7 @@ def consultarCliente(dni):
             
             return False
 
-#Este método eliminar los datos de un cliente, validando que exista, y eliminando también las hipotecas asociadas al mismo.    
+#Este método elimina los datos de un cliente, validando que exista, y eliminando también las hipotecas asociadas al mismo.    
 def eliminarCliente(dni):
       
       if(comprobarExistenciaCliente(dni)==True):
@@ -109,4 +116,38 @@ def eliminarCliente(dni):
       
       else:
             
+            return False
+      
+#Este método simula una hipoteca asociada a un cliente, vlidando que este exista
+def simularHipoteca(dni, tae, plazoAmortizacion):
+
+      if(comprobarExistenciaCliente(dni)==True):
+
+            #En este bloque de código, tomo el capital solicitado por el cliente
+            bbdd = get_conexionBBDD()
+            cursor = bbdd.cursor()
+            sentenciaCapital = "SELECT CAPITAL_SOLICITADO FROM CLIENTES WHERE DNI = ?"
+            cursor.execute(sentenciaCapital,[dni])
+            resultadoAux = cursor.fetchall()
+            capitalSolicitado = resultadoAux[0][0]
+            bbdd.commit()
+            bbdd.close()
+
+            #En este bloque de código calculo el interés mensual y el número de meses de plazo de amortización, con los que después calculo la cuota mensual y el importe total
+            i = tae/100/12
+            n = plazoAmortizacion*12
+            cuota = round(capitalSolicitado * i /(1 - pow((1 + i),-n)),2)
+            importeTotal = round(cuota * n,2)
+
+            #En este bloque de código se crea el nuevo registro en la base de datos de las hipotécas
+            bbdd = get_conexionBBDD()
+            cursor = bbdd.cursor()
+            sentenciaInsercion = "INSERT INTO HIPOTECAS(CUOTA_MENSUAL, IMPORTE_TOTAL, DNI_CLIENTE) VALUES(?,?,?)"
+            cursor.execute(sentenciaInsercion, [cuota, importeTotal, dni])
+            bbdd.commit()
+            bbdd.close()
+
+            return "Cuota mensual: "+str(cuota)+"€"+" Importe total: "+str(importeTotal)+"€"
+      else:
+
             return False
