@@ -14,7 +14,7 @@ git clone https://github.com/Lerixion/Prueba-nivel-Roams.git
 ```
 en git bash.
 
-Previamente a la ejecución del programa, es necesario installar el framework Flask, lo cual se hace desde la CMD escribiendo el comando:
+Previamente a la ejecución del programa, es necesario instalar el framework Flask, lo cual se hace desde la CMD escribiendo el comando:
 
 ```bash
 py -m pip install flask
